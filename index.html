@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>物流路線管理系統</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input { margin: 5px 0; padding: 6px; width: 200px; }
+    button { padding: 6px 12px; margin-top: 10px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+    th { background: #eee; }
+  </style>
+</head>
+<body>
+
+  <h1>物流路線管理系統</h1>
+
+  <h2 id="formTitle">新增路線資料</h2>
+
+  <input id="date" type="date" placeholder="日期"><br>
+  <input id="routeType" placeholder="路線別"><br>
+  <input id="routeCode" placeholder="路線代號"><br>
+  <input id="tons" placeholder="路線噸數"><br>
+  <input id="driver" placeholder="司機"><br>
+  <input id="driverId" placeholder="司機工號"><br>
+  <input id="carNo" placeholder="車號"><br>
+  <input id="carOwner" placeholder="車主"><br>
+
+  <button id="submitBtn" onclick="addData()">新增資料</button>
+  <button id="updateBtn" onclick="updateData()" style="display:none;">更新資料</button>
+
+  <h2>路線資料列表</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>日期</th>
+        <th>路線別</th>
+        <th>路線代號</th>
+        <th>路線噸數</th>
+        <th>司機</th>
+        <th>司機工號</th>
+        <th>車號</th>
+        <th>車主</th>
+        <th>操作</th>
+      </tr>
+    </thead>
+    <tbody id="dataTable"></tbody>
+  </table>
+
+<script>
+// ★ 路線代號 → 噸數 對照表
+const routeTonsMap = {
+  "A01": "3.5",
+  "A02": "5",
+  "B01": "8",
+  "B02": "12",
+  "C01": "20"
+};
+
+let editIndex = null;
+
+// ★ 自動帶出噸數
+document.getElementById("routeCode").addEventListener("input", function () {
+  const code = this.value.trim();
+  if (routeTonsMap[code]) {
+    document.getElementById("tons").value = routeTonsMap[code];
+  }
+});
+
+function loadData() {
+  const list = JSON.parse(localStorage.getItem("routes") || "[]");
+  const table = document.getElementById("dataTable");
+  table.innerHTML = "";
+
+  list.forEach((d, index) => {
+    table.innerHTML += `
+      <tr>
+        <td>${d.date}</td>
+        <td>${d.routeType}</td>
+        <td>${d.routeCode}</td>
+        <td>${d.tons}</td>
+        <td>${d.driver}</td>
+        <td>${d.driverId}</td>
+        <td>${d.carNo}</td>
+        <td>${d.carOwner}</td>
+        <td>
+          <button onclick="editData(${index})">修改</button>
+          <button onclick="deleteData(${index})">刪除</button>
+        </td>
+      </tr>`;
+  });
+}
+
+function getFormData() {
+  return {
+    date: document.getElementById("date").value,
+    routeType: document.getElementById("routeType").value,
+    routeCode: document.getElementById("routeCode").value,
+    tons: document.getElementById("tons").value,
+    driver: document.getElementById("driver").value,
+    driverId: document.getElementById("driverId").value,
+    carNo: document.getElementById("carNo").value,
+    carOwner: document.getElementById("carOwner").value
+  };
+}
+
+function clearForm() {
+  document.getElementById("date").value = "";
+  document.getElementById("routeType").value = "";
+  document.getElementById("routeCode").value = "";
+  document.getElementById("tons").value = "";
+  document.getElementById("driver").value = "";
+  document.getElementById("driverId").value = "";
+  document.getElementById("carNo").value = "";
+  document.getElementById("carOwner").value = "";
+  editIndex = null;
+}
+
+function addData() {
+  const list = JSON.parse(localStorage.getItem("routes") || "[]");
+  list.push(getFormData());
+  localStorage.setItem("routes", JSON.stringify(list));
+  clearForm();
+  loadData();
+}
+
+function editData(index) {
+  const list = JSON.parse(localStorage.getItem("routes") || "[]");
+  const d = list[index];
+
+  document.getElementById("date").value = d.date;
+  document.getElementById("routeType").value = d.routeType;
+  document.getElementById("routeCode").value = d.routeCode;
+  document.getElementById("tons").value = d.tons;
+  document.getElementById("driver").value = d.driver;
+  document.getElementById("driverId").value = d.driverId;
+  document.getElementById("carNo").value = d.carNo;
+  document.getElementById("carOwner").value = d.carOwner;
+
+  editIndex = index;
+
+  document.getElementById("formTitle").innerText = "修改路線資料";
+  document.getElementById("submitBtn").style.display = "none";
+  document.getElementById("updateBtn").style.display = "inline-block";
+}
+
+function updateData() {
+  const list = JSON.parse(localStorage.getItem("routes") || "[]");
+  list[editIndex] = getFormData();
+  localStorage.setItem("routes", JSON.stringify(list));
+
+  clearForm();
+  loadData();
+
+  document.getElementById("formTitle").innerText = "新增路線資料";
+  document.getElementById("submitBtn").style.display = "inline-block";
+  document.getElementById("updateBtn").style.display = "none";
+}
+
+function deleteData(index) {
+  const list = JSON.parse(localStorage.getItem("routes") || "[]");
+  list.splice(index, 1);
+  localStorage.setItem("routes", JSON.stringify(list));
+  loadData();
+}
+
+loadData();
+</script>
+
+</body>
+</html>

@@ -11,6 +11,7 @@
     th, td { border: 1px solid #ccc; padding: 8px; }
     th { background: #eee; }
   </style>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -31,7 +32,7 @@
   <button id="updateBtn" onclick="updateData()" style="display:none;">更新資料</button>
 
   <h2>路線資料列表</h2>
-
+  <button onclick="downloadExcel()">下載 Excel</button>
   <table>
     <thead>
       <tr>
@@ -49,10 +50,11 @@
     <tbody id="dataTable"></tbody>
   </table>
 
+
 <script>
 // ★ 路線代號 → 噸數 對照表
 const routeTonsMap = {
-  "A01": "3.5",
+  "K1-10-1": "8.5",
   "A02": "5",
   "B01": "8",
   "B02": "12",
@@ -167,6 +169,32 @@ function deleteData(index) {
 }
 
 loadData();
+  function downloadExcel() {
+    const list = JSON.parse(localStorage.getItem("routes") || "[]");
+
+    if (list.length === 0) {
+      alert("目前沒有資料可下載");
+      return;
+    }
+
+    const sheetData = list.map(d => ({
+      "日期": d.date,
+      "路線別": d.routeType,
+      "路線代號": d.routeCode,
+      "路線噸數": d.tons,
+      "司機": d.driver,
+      "司機工號": d.driverId,
+      "車號": d.carNo,
+      "車主": d.carOwner
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(sheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Routes");
+
+    XLSX.writeFile(workbook, "routes.xlsx");
+  }
+
 </script>
 
 </body>
